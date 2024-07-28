@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,8 +22,15 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     }); 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
+    {
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    };
+
 c.SwaggerDoc("v1", new OpenApiInfo
 {
     Version = "v1",
@@ -106,7 +114,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        //c.SupportedSubmitMethods(); // Remove the tryout button
+    });
 }
 
 app.UseHttpsRedirection();
@@ -118,7 +130,6 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseCors();
-
 
 app.UseAuthorization();
 

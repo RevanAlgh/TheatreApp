@@ -14,6 +14,11 @@ public class MoviesController(IFileService _fileService,
     IMovieRepository _movieRepository, ILogger<MoviesController> logger) : ControllerBase
 {
 
+    /// <summary>
+    ///  Create a Movie
+    /// </summary>
+    /// <response code="401">Unauthorized</response>
+    /// <response code="201">Movie Created Successfully</response>
     [HttpPost]
     public async Task<IActionResult> CreateMovie([FromForm] MovieDto createMovieDto)
     {
@@ -50,6 +55,10 @@ public class MoviesController(IFileService _fileService,
             return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
+
+    /// <summary>
+    /// Update a Movie
+    /// </summary>
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateMovie(int id, [FromForm] UpdateMovieDto updateMovieDto)
@@ -103,6 +112,10 @@ public class MoviesController(IFileService _fileService,
         }
     }
 
+    /// <summary>
+    ///  Get a Movie by id
+    /// </summary>
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetMovie(int id)
     {
@@ -115,6 +128,9 @@ public class MoviesController(IFileService _fileService,
     }
 
 
+    /// <summary>
+    /// Delete a Movie
+    /// </summary>
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteMovie(int id)
@@ -138,6 +154,9 @@ public class MoviesController(IFileService _fileService,
         }
     }
 
+    /// <summary>
+    ///  Get All Movies
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetMovies()
     {

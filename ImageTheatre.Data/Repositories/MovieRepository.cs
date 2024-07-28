@@ -45,6 +45,5 @@ public class MovieRepository(AppDbContext _context) : IMovieRepository
     {
         return await _context.Movies.Include(m => m.MovieAuthors).ToListAsync(); 
     }
-
     
 }

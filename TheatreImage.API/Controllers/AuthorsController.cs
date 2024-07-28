@@ -7,17 +7,26 @@ using Microsoft.AspNetCore.Mvc;
 namespace ImageTheatre.API.Controllers;
 
 [Route("api/authors")]
-[Authorize]
+//[Authorize]
 [ApiController]
-public class AuthorsController(IAuthorRepository _authorRepository, 
+public class AuthorsController(IAuthorRepository _authorRepository,
     ILogger<AuthorsController> logger) : ControllerBase
 {
+    /// <remarks>
+    /// Sample Request:
+    ///     POST
+    ///     
+    ///     {
+    ///         "authorName": "Mario Amadeo"
+    ///     }
+    /// </remarks>
 
+    /// <summary> Create an Author </summary>
+    /// <response code="401">Unauthorized</response>
+    /// <response code="201">Movie Created Successfully</response>
     [HttpPost]
     public async Task<IActionResult> CreateAuthor(AuthorDto createAuthorDto)
     {
-        try
-        {
             var author = new Author
             {
                 AuthorName = createAuthorDto.AuthorName
@@ -27,19 +36,14 @@ public class AuthorsController(IAuthorRepository _authorRepository,
             return CreatedAtAction(nameof(CreateAuthor), createdAuthor);
         }
 
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
-    }
 
+    /// <summary>
+    /// Update an Author
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateAuthor(int id, UpdateAuthorDto updateAuthorDto)
     {
 
-        try
-        {
             if (id != updateAuthorDto.AuthorID)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, $"id in url and form body does not match.");
@@ -57,14 +61,12 @@ public class AuthorsController(IAuthorRepository _authorRepository,
 
             return Ok(updatedAuthor);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
-    }
 
-        [HttpGet("{id}")]
+    /// <summary>
+    /// Get an Author by id
+    /// </summary>
+    /// 
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetAuthor(int id)
     {
         var author = await _authorRepository.GetByIdAsync(id);
@@ -76,12 +78,13 @@ public class AuthorsController(IAuthorRepository _authorRepository,
         return Ok(author);
     }
 
+    /// <summary>
+    /// Delete an Author
+    /// </summary>
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAuthor(int id)
     {
-        try
-        {
             var existingAuthor = await _authorRepository.GetByIdAsync(id);
             if (existingAuthor == null)
             {
@@ -91,14 +94,11 @@ public class AuthorsController(IAuthorRepository _authorRepository,
             await _authorRepository.DeleteAsync(existingAuthor);
             return NoContent();  // return 204
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
-    }
 
-
+    /// <summary>
+    /// Get All Authors
+    /// </summary>
+    /// 
     [HttpGet]
     public async Task<IActionResult> GetAuthors()
     {

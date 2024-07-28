@@ -15,8 +15,6 @@ public class MovieDto
     public decimal BoxOffice { get; set; }
     public string Language { get; set; }
     public int AuthorID { get; set; }
-
-    [Required]
     public IFormFile? MovieImageFile { get; set; }
 }
 
