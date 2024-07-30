@@ -9,12 +9,17 @@ public interface IMovieRepository
     Task<Movie> UpdateAsync(Movie movie);
     Task<IEnumerable<Movie>> GetAllAsync();
     Task<Movie?> GetByIdAsync(int id);
-    Task DeleteAsync(Movie movie);
+    Task DeleteAsync(int id);
 }
 
-public class MovieRepository(AppDbContext _context) : IMovieRepository
+public class MovieRepository : IMovieRepository
 {
+    private readonly AppDbContext _context;
 
+    public MovieRepository(AppDbContext context)
+    {
+        _context = context;
+    }
     public async Task<Movie> AddAsync(Movie movie)
     {
         _context.Movies.Add(movie);
@@ -29,21 +34,30 @@ public class MovieRepository(AppDbContext _context) : IMovieRepository
         return movie;
     }
 
-    public async Task DeleteAsync(Movie movie)
+    public async Task DeleteAsync(int id)
     {
+        var movie = await GetByIdAsync(id);
+        if (movie != null)
+        {
             _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
+        }
     }
 
     public async Task<Movie> GetByIdAsync(int id)
     {
-        var movie = await _context.Movies.Include(m => m.MovieAuthors).FirstOrDefaultAsync(m => m.MovieID == id);
-        return movie;
+        return await _context.Movies.FindAsync(id);
     }
 
     public async Task<IEnumerable<Movie>> GetAllAsync()
     {
-        return await _context.Movies.Include(m => m.MovieAuthors).ToListAsync(); 
+        return await _context.Movies.ToListAsync();
     }
-    
+
+    public async Task AddFileAttachmentAsync(FileAttachment fileAttachment)
+    {
+        _context.FileAttachments.Add(fileAttachment);
+        await _context.SaveChangesAsync();
+    }
+
 }

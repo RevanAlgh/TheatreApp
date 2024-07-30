@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Movie> Movies { get; set; }
     public DbSet<Author> Authors { get; set; }
     public DbSet<MovieAuthor> MovieAuthors { get; set; }
+    public DbSet<FileAttachment> FileAttachments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,6 +40,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Author>()
         .Property(a => a.AuthorID)
         .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Movie>()
+                .HasMany(m => m.FileAttachments)
+                .WithOne(f => f.Movie)
+                .HasForeignKey(f => f.MovieID);
 
         base.OnModelCreating(modelBuilder);
     }

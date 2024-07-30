@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ImageTheatre.API.Controllers;
 
 [Route("api/authors")]
-//[Authorize]
+[Authorize]
 [ApiController]
 public class AuthorsController(IAuthorRepository _authorRepository,
     ILogger<AuthorsController> logger) : ControllerBase
@@ -23,9 +23,9 @@ public class AuthorsController(IAuthorRepository _authorRepository,
 
     /// <summary> Create an Author </summary>
     /// <response code="401">Unauthorized</response>
-    /// <response code="201">Movie Created Successfully</response>
+    /// <response code="201">Author Created Successfully</response>
     [HttpPost]
-    public async Task<IActionResult> CreateAuthor(AuthorDto createAuthorDto)
+    public async Task<IActionResult> CreateAuthor(CreateAuthorDto createAuthorDto)
     {
             var author = new Author
             {

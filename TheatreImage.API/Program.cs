@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Reflection;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -75,6 +76,8 @@ builder.Services.AddTransient<AppDbContext>();
 builder.Services.AddTransient<IMovieRepository, MovieRepository>();
 builder.Services.AddTransient<IAuthorRepository, AuthorRepository>();
 builder.Services.AddTransient<IFileService, FileService>();
+builder.Services.AddTransient<IFileAttachmentRepository, FileAttachmentRepository>();
+
 
 builder.Services.AddCors(options =>
 {
@@ -114,23 +117,28 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        //c.SupportedSubmitMethods(); // Remove the tryout button
-    });
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+if (!Directory.Exists(uploadsFolderPath))
+{
+    Directory.CreateDirectory(uploadsFolderPath);
+}
+
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
-    RequestPath = "/Resources"
+    FileProvider = new PhysicalFileProvider(uploadsFolderPath),
+    RequestPath = "/Uploads"
 });
 
 app.UseCors();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

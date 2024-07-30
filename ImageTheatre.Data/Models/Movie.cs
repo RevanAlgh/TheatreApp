@@ -34,5 +34,7 @@ public class Movie
     public string? MovieImage { get; set; }
     public ICollection<MovieAuthor> MovieAuthors { get; set; } = new Collection<MovieAuthor>();
 
+    public ICollection<FileAttachment> FileAttachments { get; set; } // Navigation property
+
 
 }
