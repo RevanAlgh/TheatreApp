@@ -8,9 +8,18 @@ namespace TheatreApp.API.Controllers;
 
 [Route("api/authors")]
 [ApiController]
-public class AuthorsController(IAuthorRepository _authorRepository,
-    ILogger<AuthorsController> logger) : ControllerBase
-{
+public class AuthorsController: ControllerBase
+{ 
+    private readonly IAuthorRepository _authorRepository;
+    private readonly ILogger<AuthorsController> _logger;
+
+    public AuthorsController(IAuthorRepository authorRepository, ILogger<AuthorsController> logger)
+    {
+        _authorRepository = authorRepository;
+        _logger = logger;
+
+    }
+
     /// <remarks>
     /// Sample Request:
     ///     POST
@@ -27,6 +36,8 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateAuthor(CreateAuthorDto createAuthorDto)
     {
+        try
+        {
             var author = new Author
             {
                 AuthorName = createAuthorDto.AuthorName
@@ -35,6 +46,12 @@ public class AuthorsController(IAuthorRepository _authorRepository,
             var createdAuthor = await _authorRepository.AddAsync(author);
             return CreatedAtAction(nameof(CreateAuthor), createdAuthor);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
+    }
 
 
     /// <summary>
@@ -44,6 +61,8 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAuthor(int id, UpdateAuthorDto updateAuthorDto)
     {
+        try
+        {
 
             if (id != updateAuthorDto.AuthorID)
             {
@@ -62,6 +81,12 @@ public class AuthorsController(IAuthorRepository _authorRepository,
 
             return Ok(updatedAuthor);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
+    }
 
     /// <summary>
     /// Get an Author by id
@@ -71,13 +96,21 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetAuthor(int id)
     {
-        var author = await _authorRepository.GetByIdAsync(id);
-        if (author == null)
+        try
         {
-            return StatusCode(StatusCodes.Status404NotFound, $"Author with id: {id} does not found");
-        }
+            var author = await _authorRepository.GetByIdAsync(id);
+            if (author == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, $"Author with id: {id} does not found");
+            }
 
-        return Ok(author);
+            return Ok(author);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
     }
 
     /// <summary>
@@ -88,6 +121,8 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAuthor(int id)
     {
+        try
+        {
             var existingAuthor = await _authorRepository.GetByIdAsync(id);
             if (existingAuthor == null)
             {
@@ -97,6 +132,12 @@ public class AuthorsController(IAuthorRepository _authorRepository,
             await _authorRepository.DeleteAsync(existingAuthor);
             return NoContent();  // return 204
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
+    }
 
     /// <summary>
     /// Get All Authors
@@ -106,8 +147,16 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetAuthors()
     {
-        var authors = await _authorRepository.GetAllAsync();
-        return Ok(authors);
+        try
+        {
+            var authors = await _authorRepository.GetAllAsync();
+            return Ok(authors);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
     }
 
 }

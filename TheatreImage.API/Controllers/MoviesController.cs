@@ -30,6 +30,7 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetMovie(int id)
     {
+        try { 
         var movie = await _movieRepository.GetByIdAsync(id);
         if (movie == null)
         {
@@ -63,6 +64,12 @@ public class MoviesController : ControllerBase
 
         return Ok(movieDto);
     }
+    catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+}
+    }
 
 
     /// <summary>
@@ -72,14 +79,23 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetMovieImage(int id)
     {
-        var movie = await _movieRepository.GetByIdAsync(id);
-        if (movie == null || string.IsNullOrEmpty(movie.MovieImage))
+        try
         {
-            return NotFound($"Image for movie with id: {id} not found");
-        }
+            var movie = await _movieRepository.GetByIdAsync(id);
+            if (movie == null || string.IsNullOrEmpty(movie.MovieImage))
+            {
+                return NotFound($"Image for movie with id: {id} not found");
+            }
 
-        var image = System.IO.File.OpenRead(movie.MovieImage);
+            var image = System.IO.File.OpenRead(movie.MovieImage);
+        
         return File(image, "image/jpeg");
+    }
+            catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
     }
 
     /// <summary>
@@ -137,7 +153,7 @@ public class MoviesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating movie");
+            _logger.LogError(ex, "Error");
             return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
         }
     }
@@ -150,60 +166,68 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateMovie(int id, [FromForm] UpdateMovieDto updateMovieDto)
     {
-        var movie = await _movieRepository.GetByIdAsync(id);
-        if (movie == null)
+        try
         {
-            return NotFound();
+            var movie = await _movieRepository.GetByIdAsync(id);
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            movie.MovieTitle = updateMovieDto.MovieTitle;
+            movie.ImdbRating = updateMovieDto.ImdbRating;
+            movie.YearReleased = updateMovieDto.YearReleased;
+            movie.Budget = updateMovieDto.Budget;
+            movie.BoxOffice = updateMovieDto.BoxOffice;
+            movie.Language = updateMovieDto.Language;
+            movie.AuthorID = updateMovieDto.AuthorID;
+
+            if (updateMovieDto.MovieImageFile != null)
+            {
+                if (updateMovieDto.MovieImageFile.Length > 1 * 1024 * 1024)
+                {
+                    return BadRequest("File size should not exceed 1 MB");
+                }
+
+                var allowedFileExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var extension = Path.GetExtension(updateMovieDto.MovieImageFile.FileName).ToLowerInvariant();
+                if (Array.IndexOf(allowedFileExtensions, extension) < 0)
+                {
+                    return BadRequest("Invalid file extension");
+                }
+
+                var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+                if (!Directory.Exists(uploadsFolderPath))
+                {
+                    Directory.CreateDirectory(uploadsFolderPath);
+                }
+
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var imagePath = Path.Combine(uploadsFolderPath, fileName);
+                using (var fileStream = new FileStream(imagePath, FileMode.Create))
+                {
+                    await updateMovieDto.MovieImageFile.CopyToAsync(fileStream);
+                }
+
+                movie.MovieImage = imagePath;
+                var fileAttachment = new FileAttachment
+                {
+                    FilePath = Path.GetFileName(imagePath),
+                    FileName = Path.GetFileName(imagePath),
+                    MovieID = movie.MovieID
+                };
+                await _fileAttachmentRepository.AddFileAttachmentAsync(fileAttachment);
+            }
+
+            await _movieRepository.UpdateAsync(movie);
+
+            return Ok(movie);
         }
-
-        movie.MovieTitle = updateMovieDto.MovieTitle;
-        movie.ImdbRating = updateMovieDto.ImdbRating;
-        movie.YearReleased = updateMovieDto.YearReleased;
-        movie.Budget = updateMovieDto.Budget;
-        movie.BoxOffice = updateMovieDto.BoxOffice;
-        movie.Language = updateMovieDto.Language;
-        movie.AuthorID = updateMovieDto.AuthorID;
-
-        if (updateMovieDto.MovieImageFile != null)
+        catch (Exception ex)
         {
-            if (updateMovieDto.MovieImageFile.Length > 1 * 1024 * 1024)
-            {
-                return BadRequest("File size should not exceed 1 MB");
-            }
-
-            var allowedFileExtensions = new[] { ".jpg", ".jpeg", ".png" };
-            var extension = Path.GetExtension(updateMovieDto.MovieImageFile.FileName).ToLowerInvariant();
-            if (Array.IndexOf(allowedFileExtensions, extension) < 0)
-            {
-                return BadRequest("Invalid file extension");
-            }
-
-            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
-            if (!Directory.Exists(uploadsFolderPath))
-            {
-                Directory.CreateDirectory(uploadsFolderPath);
-            }
-
-            var fileName = $"{Guid.NewGuid()}{extension}";
-            var imagePath = Path.Combine(uploadsFolderPath, fileName);
-            using (var fileStream = new FileStream(imagePath, FileMode.Create))
-            {
-                await updateMovieDto.MovieImageFile.CopyToAsync(fileStream);
-            }
-
-            movie.MovieImage = imagePath;
-            var fileAttachment = new FileAttachment
-            {
-                FilePath = Path.GetFileName(imagePath),
-                FileName = Path.GetFileName(imagePath),
-                MovieID = movie.MovieID
-            };
-            await _fileAttachmentRepository.AddFileAttachmentAsync(fileAttachment);
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
         }
-
-        await _movieRepository.UpdateAsync(movie);
-
-        return Ok(movie);
     }
 
     /// <summary>
@@ -213,8 +237,16 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteMovie(int id)
     {
-        await _movieRepository.DeleteAsync(id);
-        return Ok(new { message = "Movie deleted successfully." });
+        try
+        {
+            await _movieRepository.DeleteAsync(id);
+            return Ok(new { message = "Movie deleted successfully." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
     }
 
     /// <summary>
@@ -224,28 +256,37 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetMovies()
     {
-        var movies = await _movieRepository.GetAllAsync();
-        if (movies == null || !movies.Any())
+        try
         {
-            return NotFound();
+            var movies = await _movieRepository.GetAllAsync();
+            if (movies == null || !movies.Any())
+            {
+                return NotFound();
+            }
+
+            var movieDtos = movies.Select(movie => new MovieDto
+            {
+                MovieID = movie.MovieID,
+                MovieTitle = movie.MovieTitle,
+                ImdbRating = movie.ImdbRating,
+                YearReleased = movie.YearReleased,
+                Budget = movie.Budget,
+                BoxOffice = movie.BoxOffice,
+                Language = movie.Language,
+                AuthorID = movie.AuthorID,
+                MovieAuthors = movie.MovieAuthors.ToList(),
+                ImageUrl = movie.FileAttachments?.FirstOrDefault()?.FilePath
+            }).ToList();
+
+            return Ok(movieDtos);
         }
-
-        var movieDtos = movies.Select(movie => new MovieDto
+        catch (Exception ex)
         {
-            MovieID = movie.MovieID,
-            MovieTitle = movie.MovieTitle,
-            ImdbRating = movie.ImdbRating,
-            YearReleased = movie.YearReleased,
-            Budget = movie.Budget,
-            BoxOffice = movie.BoxOffice,
-            Language = movie.Language,
-            AuthorID = movie.AuthorID,
-            MovieAuthors = movie.MovieAuthors.ToList(),
-            ImageUrl = movie.FileAttachments?.FirstOrDefault()?.FilePath
-        }).ToList();
-
-        return Ok(movieDtos);
+            _logger.LogError(ex, "Error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+        }
     }
+
 
 
 }
