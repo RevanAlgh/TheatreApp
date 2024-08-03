@@ -1,7 +1,8 @@
-﻿using ImageTheatre.Data.Models;
+﻿using TheatreApp.Data.Models;
+using TheatreApp.Data.Models.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace ImageTheatre.Data.Repositories;
+namespace TheatreApp.Data.Repositories;
 
 public interface IAuthorRepository
 {

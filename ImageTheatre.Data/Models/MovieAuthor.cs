@@ -1,4 +1,4 @@
-﻿namespace ImageTheatre.Data.Models;
+﻿namespace TheatreApp.Data.Models;
 
     public class MovieAuthor
     {

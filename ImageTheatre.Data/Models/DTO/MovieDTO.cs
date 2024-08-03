@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace ImageTheatre.Data.Models.DTO;
+namespace TheatreApp.Data.Models.DTO;
 
 public class MovieDto 
 {

@@ -1,13 +1,12 @@
-﻿using ImageTheatre.Data.Models;
-using ImageTheatre.Data.Models.DTO;
-using ImageTheatre.Data.Repositories;
+﻿using TheatreApp.Data.Models;
+using TheatreApp.Data.Models.DTO;
+using TheatreApp.Data.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImageTheatre.API.Controllers;
+namespace TheatreApp.API.Controllers;
 
 [Route("api/authors")]
-[Authorize]
 [ApiController]
 public class AuthorsController(IAuthorRepository _authorRepository,
     ILogger<AuthorsController> logger) : ControllerBase
@@ -25,6 +24,7 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     /// <response code="401">Unauthorized</response>
     /// <response code="201">Author Created Successfully</response>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateAuthor(CreateAuthorDto createAuthorDto)
     {
             var author = new Author
@@ -41,6 +41,7 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     /// Update an Author
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAuthor(int id, UpdateAuthorDto updateAuthorDto)
     {
 
@@ -67,6 +68,7 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     /// </summary>
     /// 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetAuthor(int id)
     {
         var author = await _authorRepository.GetByIdAsync(id);
@@ -83,6 +85,7 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     /// </summary>
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAuthor(int id)
     {
             var existingAuthor = await _authorRepository.GetByIdAsync(id);
@@ -100,6 +103,7 @@ public class AuthorsController(IAuthorRepository _authorRepository,
     /// </summary>
     /// 
     [HttpGet]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetAuthors()
     {
         var authors = await _authorRepository.GetAllAsync();

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 
 
-namespace ImageTheatre.Data.Services;
+namespace TheatreApp.Data.Services;
     
 public interface IFileService
 {

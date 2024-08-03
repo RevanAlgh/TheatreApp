@@ -1,13 +1,13 @@
-﻿using ImageTheatre.Data.Models;
-using ImageTheatre.Data.Models.DTO;
-using ImageTheatre.Data.Repositories;
+﻿using TheatreApp.Data.Models;
+using TheatreApp.Data.Models.Data;
+using TheatreApp.Data.Models.DTO;
+using TheatreApp.Data.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImageTheatre.API.Controllers;
+namespace TheatreApp.API.Controllers;
 
 [Route("api/movies")]
-[Authorize]
 [ApiController]
 public class MoviesController : ControllerBase
 {
@@ -27,6 +27,7 @@ public class MoviesController : ControllerBase
     /// Get a Movie by id
     /// </summary>
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetMovie(int id)
     {
         var movie = await _movieRepository.GetByIdAsync(id);
@@ -68,6 +69,7 @@ public class MoviesController : ControllerBase
     /// Get Movie Image by id
     /// </summary>
     [HttpGet("{id}/image")]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetMovieImage(int id)
     {
         var movie = await _movieRepository.GetByIdAsync(id);
@@ -84,6 +86,7 @@ public class MoviesController : ControllerBase
     /// Create a Movie
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateMovie([FromForm] CreateMovieDto createMovieDto)
     {
         try
@@ -144,6 +147,7 @@ public class MoviesController : ControllerBase
     /// Update a Movie
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateMovie(int id, [FromForm] UpdateMovieDto updateMovieDto)
     {
         var movie = await _movieRepository.GetByIdAsync(id);
@@ -206,6 +210,7 @@ public class MoviesController : ControllerBase
     /// Delete a Movie
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteMovie(int id)
     {
         await _movieRepository.DeleteAsync(id);
@@ -216,6 +221,7 @@ public class MoviesController : ControllerBase
     /// Get All Movies
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetMovies()
     {
         var movies = await _movieRepository.GetAllAsync();

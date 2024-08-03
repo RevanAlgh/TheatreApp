@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreImage.API", "TheatreImage.API\TheatreImage.API.csproj", "{FAD63B85-94C1-4BB5-89DE-30FDD76E25DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheatreApp.API", "TheatreImage.API\TheatreApp.API.csproj", "{FAD63B85-94C1-4BB5-89DE-30FDD76E25DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageTheatre.Data", "ImageTheatre.Data\ImageTheatre.Data.csproj", "{6CDFC5AF-B2DD-4893-BA5D-5FD180512904}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheatreApp.Data", "ImageTheatre.Data\TheatreApp.Data.csproj", "{6CDFC5AF-B2DD-4893-BA5D-5FD180512904}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

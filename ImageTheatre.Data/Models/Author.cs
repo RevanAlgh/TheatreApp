@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ImageTheatre.Data.Models;
+namespace TheatreApp.Data.Models;
 
 [Table("Author")]
 public class Author

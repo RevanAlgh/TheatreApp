@@ -1,7 +1,6 @@
-using ImageTheatre.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using ImageTheatre.Data.Services;
-using ImageTheatre.Data.Repositories;
+using TheatreApp.Data.Services;
+using TheatreApp.Data.Repositories;
 using Microsoft.Extensions.FileProviders;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
@@ -9,12 +8,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Reflection;
+using Microsoft.AspNetCore.Identity;
+using TheatreApp.Data.Models.Data;
 
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnectionString")));
 
 // Add services to the container.
 builder.Services.AddControllers()
@@ -22,8 +20,8 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     }); 
-builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     {
@@ -35,13 +33,12 @@ builder.Services.AddSwaggerGen(c =>
 c.SwaggerDoc("v1", new OpenApiInfo
 {
     Version = "v1",
-    Title = "JWT Api",
+    Title = "Theater Api",
     Description = "Secures API using JWT",
     Contact = new OpenApiContact
     {
         Name = "Revan",
-        Email = "Revan@gmail.com",
-        Url = new Uri("https://www.google.mw/")
+        Email = "x.reev3350@gmail.com"
     }
 });
     // To Enable authorization using Swagger (JWT)
@@ -71,6 +68,9 @@ c.SwaggerDoc("v1", new OpenApiInfo
     });
 });
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnectionString")));
+
 
 builder.Services.AddTransient<AppDbContext>();
 builder.Services.AddTransient<IMovieRepository, MovieRepository>();
@@ -88,28 +88,47 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Add JWT service
-builder.Services.AddScoped<JwtService>();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireDigit = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
-// Implementing JWT
+
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateAudience = false,
         ValidateLifetime = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
 });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+});
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 
 var app = builder.Build();
 
@@ -139,6 +158,7 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseCors();
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
